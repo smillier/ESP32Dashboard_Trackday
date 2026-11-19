@@ -11,6 +11,7 @@
 #include "display.h"
 #include "fonts.h"
 #include "settings.h"
+#include "splash.h"
 #include "touch.h"
 #include "heart_rate_ble.h"
 #include "line_store.h"
@@ -53,6 +54,7 @@ extern "C" void app_main(void) {
     fonts::init();
     touch_init();
     ui_create();
+    splash_run();
     status_led::init(kRgbLedPin, kRgbLedCount);
     buttons_init();
     if (settings::get().demo) {

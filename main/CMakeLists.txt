@@ -4,6 +4,7 @@ idf_component_register(
         "display.c"
         "ui.cpp"
         "config_ui.cpp"
+        "splash.cpp"
         "settings.cpp"
         "i18n.cpp"
         "fonts.cpp"
