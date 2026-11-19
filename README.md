@@ -126,7 +126,7 @@ The dash is a BLE central only (it never advertises) and keeps three connections
 - **GoPro**: found by service 0xFEA6 and bonded with Just Works legacy pairing. Put the camera in pairing mode once; the bond is saved.
 - **Heart-rate strap**: any strap with the standard Heart Rate service (0x180D), no pairing needed.
 
-Each device is pinned to one address: the first match is accepted and saved in flash (trust on first use), then only that address connects. Hold the GoPro mode button for 3 s to forget all pins. See the [security review](docs/security-review.pdf).
+Each device is pinned to one address: the first match is accepted and saved in flash (trust on first use), then only that address connects. Hold the GoPro mode button for 3 s to forget all pins.
 
 ## How the numbers are computed
 
@@ -187,7 +187,6 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 | `main/demo.cpp` | Demo mode |
 | `main/config.h` | Pins and settings |
 | `sdkconfig.defaults*` | Shared, ESP32 and ESP32-S3 settings |
-| `docs/security-review.pdf` | Firmware security review with remediation |
 
 ## Status and limits
 
