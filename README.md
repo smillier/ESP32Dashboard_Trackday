@@ -1,4 +1,4 @@
-# Dashboard_Moto: lap timer and lean-angle dash
+# ESP32Dashboard_Trackday: lap timer and lean-angle dash
 
 ESP-IDF firmware for a motorcycle track-day dash on a 3.5" 480x320 colour LCD. It shows:
 
@@ -198,4 +198,4 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 
 ## Credits
 
-The BLE, GoPro and RaceBox code comes from the earlier ESP32-C6 firmware on this repository's `main` branch.
+The BLE, GoPro and RaceBox code comes from the earlier ESP32-C6 firmware in [smillier/Dashboard_Moto](https://github.com/smillier/Dashboard_Moto).
