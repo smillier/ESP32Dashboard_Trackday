@@ -16,6 +16,7 @@
 #define LCD_HAS_IO_EXPANDER_RESET 1
 #define PIN_I2C_SDA     8
 #define PIN_I2C_SCL     7
+#define PIN_TOUCH_I2C_ADDR 0x38   /* FT6336U */
 #else
 /* Freenove FNK0103N: 3.5" ST7796 320x480, SPI on HSPI (SPI2). Touch unused. */
 #define PIN_LCD_MOSI    13
@@ -25,6 +26,9 @@
 #define PIN_LCD_DC      2
 #define PIN_LCD_BL      27
 #define LCD_INVERT_COLORS   false
+/* Resistive XPT2046 on the same SPI bus as the display. */
+#define PIN_TOUCH_CS    33
+#define PIN_TOUCH_IRQ   36
 #endif
 #define LCD_HOST        SPI2_HOST
 
@@ -40,6 +44,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+#if CONFIG_IDF_TARGET_ESP32S3
+#include "driver/i2c_master.h"
+/* I2C bus shared by the TCA9554 expander and the FT6336 touch controller. */
+i2c_master_bus_handle_t display_i2c_bus(void);
 #endif
 lv_display_t *display_init(void);
 void display_set_brightness(int pct);

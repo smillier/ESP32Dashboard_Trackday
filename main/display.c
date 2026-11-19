@@ -26,6 +26,12 @@ static esp_lcd_panel_handle_t s_panel;
 #define TCA9554_LCD_RST_BIT 0x02
 
 static i2c_master_dev_handle_t s_tca;
+static i2c_master_bus_handle_t s_i2c_bus;
+
+i2c_master_bus_handle_t display_i2c_bus(void)
+{
+    return s_i2c_bus;
+}
 
 static uint8_t tca_read(uint8_t reg)
 {
@@ -52,6 +58,7 @@ static void lcd_reset_via_expander(void)
     };
     i2c_master_bus_handle_t bus;
     ESP_ERROR_CHECK(i2c_new_master_bus(&bus_cfg, &bus));
+    s_i2c_bus = bus;
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = TCA9554_ADDR,

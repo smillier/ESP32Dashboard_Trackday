@@ -8,8 +8,12 @@
 #include "lvgl.h"
 
 #include "app_state.h"
+#include "config_ui.h"
+#include "fonts.h"
 #include "heart_rate_ble.h"
+#include "i18n.h"
 #include "racebox_ble.h"
+#include "settings.h"
 #include "status_led.h"
 #include "telemetry.h"
 
@@ -36,7 +40,7 @@ constexpr int kIconY = 38;       // icon + caption row
 constexpr int kBigY = 58;        // big value row (heart rate / current lap)
 constexpr int kRow1Y = 106;      // BEST / SPEED
 constexpr int kRow2Y = 142;      // GAP / GPS
-constexpr int kValueDx = 62;     // value column offset from the row label
+constexpr int kValueDx = 72;     // value column offset from the row label
 constexpr int kBoxW = 150;       // chips and lap cards
 constexpr int kBoxPitch = 157;
 
@@ -58,6 +62,7 @@ Card g_cards[3];
 lv_obj_t *g_lean_bar, *g_lean, *g_max_l, *g_max_r;
 lv_obj_t *g_hr_caption, *g_hr_bpm, *g_hr_icon, *g_speed, *g_gps;
 lv_obj_t *g_lap_cap, *g_lap_icon, *g_current, *g_best, *g_gap;
+lv_obj_t* g_scr = nullptr;
 uint32_t g_last_lap_count = 0;
 
 lv_obj_t* make_label(lv_obj_t* parent, const lv_font_t* font, lv_color_t color, int x, int y) {
@@ -112,9 +117,9 @@ void build_chip(lv_obj_t* scr, Chip* c, int x, const char* name) {
     lv_obj_set_style_bg_opa(c->dot, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(c->dot, COL_GREY, 0);
 
-    c->name = make_label(box, &lv_font_montserrat_14, COL_TEXT, 24, 3);
+    c->name = make_label(box, fonts::text(), COL_TEXT, 24, 3);
     lv_label_set_text(c->name, name);
-    c->state = make_label(box, &lv_font_montserrat_12, COL_CAPTION, 0, 5);
+    c->state = make_label(box, fonts::small(), COL_CAPTION, 0, 5);
     lv_obj_set_width(c->state, 56);
     lv_obj_set_style_text_align(c->state, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_set_x(c->state, 86);
@@ -135,8 +140,8 @@ void build_card(lv_obj_t* scr, Card* c, int x) {
     lv_obj_set_style_radius(c->box, 6, 0);
     lv_obj_set_style_border_width(c->box, 2, 0);
     lv_obj_set_style_border_color(c->box, COL_TEXT, 0);
-    c->lap = make_label(c->box, &lv_font_montserrat_14, COL_CAPTION, 8, 4);
-    c->delta = make_label(c->box, &lv_font_montserrat_14, COL_TEXT, 0, 4);
+    c->lap = make_label(c->box, fonts::text(), COL_CAPTION, 8, 4);
+    c->delta = make_label(c->box, fonts::text(), COL_TEXT, 0, 4);
     lv_obj_set_width(c->delta, 80);
     lv_obj_set_style_text_align(c->delta, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_set_x(c->delta, 56);
@@ -216,33 +221,35 @@ lv_obj_t* make_clock_icon(lv_obj_t* scr, int x, int y) {
 void build_heart_rate(lv_obj_t* scr) {
     g_hr_icon = make_heart_icon(scr, kLeftX, kIconY);
     lv_obj_set_style_image_recolor(g_hr_icon, COL_GREY, 0);
-    g_hr_caption = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, kLeftX + 30, kIconY + 3);
-    lv_label_set_text(g_hr_caption, "HEART RATE");
+    g_hr_caption = make_label(scr, fonts::text(), COL_CAPTION, kLeftX + 30, kIconY + 3);
+    lv_obj_set_width(g_hr_caption, 200);
+    lv_label_set_long_mode(g_hr_caption, LV_LABEL_LONG_CLIP);
+    lv_label_set_text(g_hr_caption, i18n::tr(i18n::HEART_RATE));
 
     g_hr_bpm = make_label(scr, &lv_font_montserrat_48, COL_TEXT, kLeftX, kBigY);
     lv_obj_set_width(g_hr_bpm, 96);
     lv_label_set_long_mode(g_hr_bpm, LV_LABEL_LONG_CLIP);
-    lv_obj_t* unit = make_label(scr, &lv_font_montserrat_20, COL_CAPTION, kLeftX + 98, kBigY + 26);
+    lv_obj_t* unit = make_label(scr, fonts::title(), COL_CAPTION, kLeftX + 98, kBigY + 26);
     lv_label_set_text(unit, "bpm");
 
-    lv_obj_t* l = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, kLeftX, kRow1Y + 10);
-    lv_label_set_text(l, "SPEED");
+    lv_obj_t* l = make_label(scr, fonts::text(), COL_CAPTION, kLeftX, kRow1Y + 10);
+    lv_label_set_text(l, i18n::tr(i18n::SPEED));
     g_speed = make_label(scr, &lv_font_montserrat_28, COL_TEXT, kLeftX + kValueDx, kRow1Y);
-    l = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, kLeftX, kRow2Y + 10);
+    l = make_label(scr, fonts::text(), COL_CAPTION, kLeftX, kRow2Y + 10);
     lv_label_set_text(l, "GPS");
     g_gps = make_label(scr, &lv_font_montserrat_28, COL_TEXT, kLeftX + kValueDx, kRow2Y);
 }
 
 void build_lean(lv_obj_t* scr) {
-    g_max_l = make_label(scr, &lv_font_montserrat_20, COL_TEXT, kLeftX, 176);
-    g_max_r = make_label(scr, &lv_font_montserrat_20, COL_TEXT, 0, 176);
+    g_max_l = make_label(scr, fonts::title(), COL_TEXT, kLeftX, 176);
+    g_max_r = make_label(scr, fonts::title(), COL_TEXT, 0, 176);
     lv_obj_set_width(g_max_r, 110);
     lv_obj_set_style_text_align(g_max_r, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_set_x(g_max_r, 480 - kMargin - 110);
     g_lean = make_label(scr, &lv_font_montserrat_28, COL_TEXT, 0, 170);
-    lv_obj_set_width(g_lean, 200);
+    lv_obj_set_width(g_lean, 220);
     lv_obj_set_style_text_align(g_lean, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_x(g_lean, 140);
+    lv_obj_set_x(g_lean, 130);
 
     g_lean_bar = lv_bar_create(scr);
     lv_obj_set_pos(g_lean_bar, kMargin, 206);
@@ -268,15 +275,17 @@ void build_laps(lv_obj_t* scr) {
     constexpr int x = kRightX;
     g_lap_icon = make_clock_icon(scr, x, kIconY);
     lv_obj_set_style_image_recolor(g_lap_icon, COL_GREY, 0);
-    g_lap_cap = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, x + 30, kIconY + 3);
+    g_lap_cap = make_label(scr, fonts::text(), COL_CAPTION, x + 30, kIconY + 3);
+    lv_obj_set_width(g_lap_cap, 480 - kMargin - (x + 30));
+    lv_label_set_long_mode(g_lap_cap, LV_LABEL_LONG_CLIP);
     g_current = make_label(scr, &lv_font_montserrat_48, COL_TEXT, x, kBigY);
 
-    lv_obj_t* l = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, x, kRow1Y + 10);
-    lv_label_set_text(l, "BEST");
+    lv_obj_t* l = make_label(scr, fonts::text(), COL_CAPTION, x, kRow1Y + 10);
+    lv_label_set_text(l, i18n::tr(i18n::BEST));
     g_best = make_label(scr, &lv_font_montserrat_28, COL_PURPLE, x + kValueDx, kRow1Y);
 
-    l = make_label(scr, &lv_font_montserrat_14, COL_CAPTION, x, kRow2Y + 10);
-    lv_label_set_text(l, "GAP");
+    l = make_label(scr, fonts::text(), COL_CAPTION, x, kRow2Y + 10);
+    lv_label_set_text(l, i18n::tr(i18n::GAP));
     g_gap = make_label(scr, &lv_font_montserrat_28, COL_TEXT, x + kValueDx, kRow2Y);
 
     for (int i = 0; i < 3; ++i) {
@@ -288,32 +297,41 @@ bool blink(uint32_t period_ms) {
     return (lv_tick_get() / period_ms) % 2 == 0;
 }
 
+const char* mode_text(gopro_preset_group_t mode) {
+    switch (mode) {
+        case GOPRO_PRESET_VIDEO: return i18n::tr(i18n::MODE_VIDEO);
+        case GOPRO_PRESET_PHOTO: return i18n::tr(i18n::MODE_PHOTO);
+        case GOPRO_PRESET_TIMELAPSE: return i18n::tr(i18n::MODE_TIMELAPSE);
+        default: return "?";
+    }
+}
+
 void refresh_chips() {
     const bool slow = blink(500), fast = blink(150);
 
     switch (racebox_ble::state()) {
-        case RaceBoxState::SCANNING: chip_set(&g_chip_rb, COL_BLUE, "SEARCH", slow); break;
-        case RaceBoxState::CONNECTING: chip_set(&g_chip_rb, COL_BLUE, "LINK", fast); break;
-        case RaceBoxState::CONNECTED_IDLE: chip_set(&g_chip_rb, COL_GREEN, "READY", true); break;
-        case RaceBoxState::RECORDING: chip_set(&g_chip_rb, COL_RED, "REC", true); break;
-        case RaceBoxState::RECORDING_PAUSED: chip_set(&g_chip_rb, COL_ORANGE, "PAUSED", slow); break;
-        case RaceBoxState::MEMORY_LOCKED: chip_set(&g_chip_rb, COL_PURPLE, "LOCKED", fast); break;
+        case RaceBoxState::SCANNING: chip_set(&g_chip_rb, COL_BLUE, i18n::tr(i18n::ST_SEARCH), slow); break;
+        case RaceBoxState::CONNECTING: chip_set(&g_chip_rb, COL_BLUE, i18n::tr(i18n::ST_LINK), fast); break;
+        case RaceBoxState::CONNECTED_IDLE: chip_set(&g_chip_rb, COL_GREEN, i18n::tr(i18n::ST_READY), true); break;
+        case RaceBoxState::RECORDING: chip_set(&g_chip_rb, COL_RED, i18n::tr(i18n::ST_REC), true); break;
+        case RaceBoxState::RECORDING_PAUSED: chip_set(&g_chip_rb, COL_ORANGE, i18n::tr(i18n::ST_PAUSED), slow); break;
+        case RaceBoxState::MEMORY_LOCKED: chip_set(&g_chip_rb, COL_PURPLE, i18n::tr(i18n::ST_LOCKED), fast); break;
     }
 
     if (app_state_get_recording()) {
-        chip_set(&g_chip_gopro, COL_RED, "REC", blink(400));
+        chip_set(&g_chip_gopro, COL_RED, i18n::tr(i18n::ST_REC), blink(400));
     } else {
         switch (app_state_get_conn()) {
-            case CONN_STATE_SCANNING: chip_set(&g_chip_gopro, COL_BLUE, "SEARCH", blink(400)); break;
-            case CONN_STATE_CONNECTING: chip_set(&g_chip_gopro, COL_ORANGE, "PAIRING", true); break;
-            case CONN_STATE_READY: chip_set(&g_chip_gopro, COL_GREEN, app_state_mode_str(app_state_get_mode()), true); break;
+            case CONN_STATE_SCANNING: chip_set(&g_chip_gopro, COL_BLUE, i18n::tr(i18n::ST_SEARCH), blink(400)); break;
+            case CONN_STATE_CONNECTING: chip_set(&g_chip_gopro, COL_ORANGE, i18n::tr(i18n::ST_PAIRING), true); break;
+            case CONN_STATE_READY: chip_set(&g_chip_gopro, COL_GREEN, mode_text(app_state_get_mode()), true); break;
         }
     }
 
     if (heart_rate_ble_is_connected() || ui_demo_bpm > 0) {
-        chip_set(&g_chip_hr, COL_GREEN, "LIVE", true);
+        chip_set(&g_chip_hr, COL_GREEN, i18n::tr(i18n::ST_LIVE), true);
     } else {
-        chip_set(&g_chip_hr, COL_BLUE, "SEARCH", slow);
+        chip_set(&g_chip_hr, COL_BLUE, i18n::tr(i18n::ST_SEARCH), slow);
     }
 }
 
@@ -333,7 +351,7 @@ void refresh_heart_rate() {
     set_text(g_hr_bpm, buf);
     set_color(g_hr_bpm, valid ? COL_TEXT : COL_GREY);
     lv_obj_set_style_image_recolor(g_hr_icon, valid ? COL_RED : COL_GREY, 0);
-    set_text(g_hr_caption, valid ? "HEART RATE" : (heart_rate_ble_is_connected() ? "WAITING FOR PULSE" : "NO STRAP"));
+    set_text(g_hr_caption, i18n::tr(valid ? i18n::HEART_RATE : (heart_rate_ble_is_connected() ? i18n::WAIT_PULSE : i18n::NO_STRAP)));
 }
 
 void refresh_lean(const telemetry::Snapshot& s, bool live) {
@@ -345,35 +363,37 @@ void refresh_lean(const telemetry::Snapshot& s, bool live) {
     lv_obj_set_style_bg_color(g_lean_bar, lean_color(lean), LV_PART_INDICATOR);
 
     if (live) {
-        std::snprintf(buf, sizeof(buf), "LEAN %d\xC2\xB0", std::abs(v));
+        std::snprintf(buf, sizeof(buf), "%s %d\xC2\xB0", i18n::tr(i18n::LEAN), std::abs(v));
     } else {
-        std::snprintf(buf, sizeof(buf), "LEAN --");
+        std::snprintf(buf, sizeof(buf), "%s --", i18n::tr(i18n::LEAN));
     }
     set_text(g_lean, buf);
     set_color(g_lean, live ? lean_color(lean) : COL_GREY);
 
-    std::snprintf(buf, sizeof(buf), "L %d\xC2\xB0", (int)(s.max_left_deg + 0.5f));
+    std::snprintf(buf, sizeof(buf), "%s %d\xC2\xB0", i18n::tr(i18n::LEFT_SHORT), (int)(s.max_left_deg + 0.5f));
     set_text(g_max_l, buf);
-    std::snprintf(buf, sizeof(buf), "R %d\xC2\xB0", (int)(s.max_right_deg + 0.5f));
+    std::snprintf(buf, sizeof(buf), "%s %d\xC2\xB0", i18n::tr(i18n::RIGHT_SHORT), (int)(s.max_right_deg + 0.5f));
     set_text(g_max_r, buf);
 
 }
 
 void refresh_status(const telemetry::Snapshot& s, bool live) {
     char buf[32];
+    const bool mph = settings::get().units == settings::UNITS_MPH;
+    const char* unit = mph ? "mph" : "km/h";
     if (live) {
-        std::snprintf(buf, sizeof(buf), "%d km/h", (int)(s.speed_kmh + 0.5f));
+        std::snprintf(buf, sizeof(buf), "%d %s", (int)(s.speed_kmh * (mph ? 0.621371f : 1.0f) + 0.5f), unit);
     } else {
-        std::snprintf(buf, sizeof(buf), "-- km/h");
+        std::snprintf(buf, sizeof(buf), "-- %s", unit);
     }
     set_text(g_speed, buf);
     set_color(g_speed, live ? COL_TEXT : COL_GREY);
 
     if (live && s.fix_ok) {
-        std::snprintf(buf, sizeof(buf), "3D  %d sat", s.sats);
+        std::snprintf(buf, sizeof(buf), "3D  %d %s", s.sats, i18n::tr(i18n::SAT));
         set_color(g_gps, COL_GREEN);
     } else if (live) {
-        std::snprintf(buf, sizeof(buf), "NO FIX");
+        std::snprintf(buf, sizeof(buf), "%s", i18n::tr(i18n::NO_FIX));
         set_color(g_gps, COL_RED);
     } else {
         std::snprintf(buf, sizeof(buf), "--");
@@ -387,15 +407,15 @@ void refresh_laps(const telemetry::Snapshot& s, bool live) {
 
     lv_color_t cap_color = COL_CAPTION;
     if (!s.line_set) {
-        std::snprintf(buf, sizeof(buf), "NO START LINE - PRESS MARK");
+        std::snprintf(buf, sizeof(buf), "%s", i18n::tr(i18n::NO_LINE));
         cap_color = COL_RED;
     } else if (!s.timing) {
-        std::snprintf(buf, sizeof(buf), "WAITING FOR THE LINE...");
+        std::snprintf(buf, sizeof(buf), "%s", i18n::tr(i18n::WAIT_LINE));
         cap_color = COL_ORANGE;
     } else if (live) {
-        std::snprintf(buf, sizeof(buf), "CURRENT  LAP %d", s.lap_number);
+        std::snprintf(buf, sizeof(buf), i18n::tr(i18n::CURRENT_LAP), s.lap_number);
     } else {
-        std::snprintf(buf, sizeof(buf), "CURRENT");
+        std::snprintf(buf, sizeof(buf), "%s", i18n::tr(i18n::CURRENT));
     }
     set_text(g_lap_cap, buf);
     set_color(g_lap_cap, cap_color);
@@ -426,7 +446,7 @@ void refresh_laps(const telemetry::Snapshot& s, bool live) {
             lv_obj_set_style_border_color(c.box, COL_TEXT, 0);
             continue;
         }
-        std::snprintf(buf, sizeof(buf), "LAP %d", s.last_lap[i]);
+        std::snprintf(buf, sizeof(buf), "%s %d", i18n::tr(i18n::LAP), s.last_lap[i]);
         set_text(c.lap, buf);
         fmt_time(buf, sizeof(buf), s.last_ms[i]);
         set_text(c.time, buf);
@@ -434,7 +454,7 @@ void refresh_laps(const telemetry::Snapshot& s, bool live) {
         const bool is_best = s.last_lap[i] == s.best_lap;
         lv_obj_set_style_border_color(c.box, is_best ? COL_PURPLE : COL_TEXT, 0);
         if (is_best) {
-            set_text(c.delta, "BEST");
+            set_text(c.delta, i18n::tr(i18n::BEST));
             set_color(c.delta, COL_PURPLE);
         } else {
             fmt_delta(buf, sizeof(buf), (int32_t)s.last_ms[i] - (int32_t)s.best_ms);
@@ -471,18 +491,47 @@ void refresh(lv_timer_t*) {
 bool ui_demo_active = false;
 int ui_demo_bpm = 0;
 
-void ui_create(void) {
-    lv_obj_t* scr = lv_screen_active();
-    lv_obj_set_style_bg_color(scr, COL_BG, 0);
-    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
-    lv_obj_remove_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
+namespace {
 
-    build_chip(scr, &g_chip_rb, kMargin, "RaceBox");
-    build_chip(scr, &g_chip_gopro, kMargin + kBoxPitch, "GoPro");
-    build_chip(scr, &g_chip_hr, kMargin + 2 * kBoxPitch, "Heart");
-    build_heart_rate(scr);
-    build_lean(scr);
-    build_laps(scr);
+void open_settings(lv_event_t*) {
+    config_ui_open();
+}
+
+void build_all() {
+    lv_obj_clean(g_scr);
+    build_chip(g_scr, &g_chip_rb, kMargin, "RaceBox");
+    build_chip(g_scr, &g_chip_gopro, kMargin + kBoxPitch, "GoPro");
+    build_chip(g_scr, &g_chip_hr, kMargin + 2 * kBoxPitch, i18n::tr(i18n::CHIP_HEART));
+    build_heart_rate(g_scr);
+    build_lean(g_scr);
+    build_laps(g_scr);
+
+    // Long press on the status chips opens the settings (touch only).
+    lv_obj_t* hit = lv_obj_create(g_scr);
+    lv_obj_remove_style_all(hit);
+    lv_obj_set_pos(hit, 0, 0);
+    lv_obj_set_size(hit, 480, 34);
+    lv_obj_add_flag(hit, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(hit, open_settings, LV_EVENT_LONG_PRESSED, nullptr);
+}
+
+} // namespace
+
+void ui_show_dashboard(bool rebuild) {
+    if (rebuild) {
+        build_all();
+    }
+    lv_screen_load(g_scr);
+    refresh(nullptr);
+}
+
+void ui_create(void) {
+    g_scr = lv_obj_create(nullptr);
+    lv_obj_set_style_bg_color(g_scr, COL_BG, 0);
+    lv_obj_set_style_bg_opa(g_scr, LV_OPA_COVER, 0);
+    lv_obj_remove_flag(g_scr, LV_OBJ_FLAG_SCROLLABLE);
+    build_all();
+    lv_screen_load(g_scr);
 
     lv_timer_create(refresh, 40, nullptr);
     refresh(nullptr);

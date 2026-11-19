@@ -8,7 +8,7 @@ ESP-IDF firmware for a motorcycle track-day dash on a 3.5" 480x320 colour LCD. I
 - **Status of every Bluetooth device** (RaceBox, GoPro, heart-rate strap) on screen and on a NeoPixel bar
 - **GoPro and RaceBox control** from external buttons (shutter, mode, sleep, RaceBox recording)
 
-There is no touch input: everything is driven by external buttons.
+The dash is driven by external buttons while riding. The touch screen is only used, parked, for the [settings screen](#settings-screen): language (English, French, German, Spanish, Italian), speed unit, brightness, demo mode, forgetting Bluetooth devices, and the firmware version.
 
 It builds for two boards from the same source:
 
@@ -29,6 +29,14 @@ These were captured from the real display on the Waveshare board, running [demo 
 
 ![Three laps with gap](docs/images/02-three-laps-with-gap.png)
 
+**Settings screen** (long press the status chips at the top of the dashboard):
+
+![Settings screen](docs/images/03-settings-screen.png)
+
+**French**, one of the five languages:
+
+![French dashboard](docs/images/04-french.png)
+
 ## What is on screen
 
 | Area | Content |
@@ -39,7 +47,26 @@ These were captured from the real display on the Waveshare board, running [demo 
 | Lean bar | Flat bar centred on zero, growing left or right (range +-60 degrees). Green below 30 degrees, orange up to 45, red above. The maximum left and right lean of the session sit at each end. |
 | Bottom | The last 3 laps with their delta to the best. The best lap has a purple outline. |
 
-When there is no start line yet the lap caption turns red ("NO START LINE - PRESS MARK").
+When there is no start line yet the lap caption turns red ("NO LINE - PRESS MARK").
+
+## Settings screen
+
+Long press (about 1 s) the row of status chips at the top of the dashboard to open it. It is a scrollable list:
+
+| Setting | What it does |
+|---|---|
+| Language | English, Français, Deutsch, Español, Italiano. Everything on the dashboard and in the settings changes at once. |
+| Speed unit | km/h or mph. |
+| Brightness | Backlight, 10 to 100 %. |
+| Demo mode | Simulated bike on or off (see [Demo mode](#demo-mode)). Starts on or off according to `kDemoTelemetry` until you change it. |
+| Forget Bluetooth devices | Clears the pinned RaceBox, GoPro and strap, so the next ones are pinned. |
+| Reset laps and max lean | Same as holding the mark button. |
+| Restart | Reboots the dash. |
+| Firmware | Name, version, build date, chip and ESP-IDF version. |
+
+Every setting is saved in flash. The screen closes by itself after 45 s without a touch. The firmware version is `FIRMWARE_VERSION` in [`main/version.h`](main/version.h) and is also printed at start-up.
+
+Texts are in [`main/i18n.h`](main/i18n.h): add a language by adding a column there and a name in `i18n.cpp`. Accented letters work because the text fonts are rendered from an embedded Montserrat TrueType file (SIL Open Font License) instead of the built-in LVGL fonts, which only have ASCII.
 
 ## Hardware and pinouts
 
@@ -55,6 +82,7 @@ When there is no start line yet the lap caption turns red ("NO START LINE - PRES
 | Backlight (PWM) | GPIO 27 | GPIO 6 |
 | Reset | not used | TCA9554 I/O expander, EXIO1 (I2C SDA 8, SCL 7) |
 | Colour inversion | off | on |
+| Touch controller | XPT2046 resistive, on the display SPI bus: CS GPIO 33, IRQ GPIO 36 | FT6336U capacitive, I2C 0x38 on the same bus as the expander (SDA 8, SCL 7), polled |
 
 The pins come from the Freenove TFT_eSPI setup files and from Waveshare's own ESP-IDF example. Orientation is set by `LCD_MIRROR_X` / `LCD_MIRROR_Y` in [`main/display.h`](main/display.h). Backlight level is `LCD_BRIGHTNESS_PCT`, and `display_set_brightness()` changes it at runtime.
 
@@ -114,7 +142,7 @@ This is an estimate, not a calibrated measurement: check it against a reference 
 
 The screenshots above were taken in demo mode.
 
-To use real data, set `kDemoTelemetry` to `false` and reflash.
+To use real data, switch Demo mode off in the settings screen (or set `kDemoTelemetry` to `false` for a different default and reflash).
 
 ## Build and flash
 
@@ -143,6 +171,11 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 | `main/main.cpp` | Start-up and the LVGL loop |
 | `main/display.c/.h` | LVGL and ST7796 setup, pins, backlight (both boards) |
 | `main/ui.cpp` | The dashboard screen |
+| `main/config_ui.cpp` | The settings screen |
+| `main/settings.cpp/.h` | Saved settings (language, unit, brightness, demo) |
+| `main/i18n.cpp/.h` | Translated texts |
+| `main/fonts.cpp`, `main/fonts/` | Accented text fonts (Montserrat TTF through Tiny TTF) |
+| `main/touch.c/.h` | Touch controllers (FT6336U and XPT2046) |
 | `main/telemetry.cpp/.h` | Lean estimate and GPS lap timing (no ESP-IDF dependency) |
 | `main/racebox_ble.cpp`, `ubx_protocol.*` | RaceBox connection, UBX parsing, data message |
 | `main/gopro_ble.c`, `gopro_control.c` | GoPro connection and commands |
@@ -159,7 +192,8 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 ## Status and limits
 
 - The lap and lean logic was checked on the board with the demo track (lap time and lean angle matched the simulated values). It has not yet been tested on a bike with a real RaceBox, GoPro or strap.
-- Touch, IMU, camera, SD card and audio on the Waveshare board are not used.
+- Touch is only used for the settings screen. The FT6336U on the Waveshare board answers on the bus; check that taps land where you touch (the log prints each touch). If they are mirrored or swapped, change `TOUCH_SWAP_XY`, `TOUCH_INVERT_X` and `TOUCH_INVERT_Y` in [`main/touch.c`](main/touch.c). The XPT2046 path for the Freenove board compiles but has not been tried on hardware, and its raw range (`RAW_X_MIN` and friends) may need adjusting.
+- IMU, camera, SD card and audio on the Waveshare board are not used.
 - Pinning keys on the advertised address; a strap that rotates a private address would need pinning again.
 
 ## Credits

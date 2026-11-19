@@ -249,6 +249,23 @@ void reset_session() {
     g_snap.last_event = LapEvent::NONE;
     g_snap.timing = false;
     g_snap.current_ms = 0;
+    g_snap.best_ms = 0;
+    g_snap.best_lap = 0;
+    g_snap.max_left_deg = g_snap.max_right_deg = 0;
+    g_snap.lap_count = 0;
+    for (int i = 0; i < 3; ++i) {
+        g_snap.last_ms[i] = 0;
+        g_snap.last_lap[i] = 0;
+    }
+}
+
+void clear_line() {
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        g_line_set = false;
+        g_snap.line_set = false;
+    }
+    reset_session();
 }
 
 void snapshot(Snapshot* out) {

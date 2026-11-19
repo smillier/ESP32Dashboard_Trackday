@@ -5,6 +5,7 @@
 #include "esp_log.h"
 #include "lvgl.h"
 
+#include "line_store.h"
 #include "telemetry.h"
 #include "ui.h"
 
@@ -20,6 +21,7 @@ double g_theta = -kPi / 2;   // clockwise from north, starts on the line heading
 uint32_t g_itow = 100000;
 double g_t = 0;
 uint32_t g_last_laps = 0;
+lv_timer_t* g_timer = nullptr;
 
 void tick(lv_timer_t*) {
     const int lap = (int)(g_t / 21.0);
@@ -64,7 +66,29 @@ void tick(lv_timer_t*) {
 
 } // namespace
 
-void demo_start(void) {
-    ui_demo_active = true;
-    lv_timer_create(tick, kTickMs, nullptr);
+void demo_set_enabled(bool on) {
+    if (on) {
+        g_theta = -kPi / 2;
+        g_t = 0;
+        g_itow = 100000;
+        g_last_laps = 0;
+        telemetry::clear_line();   // the demo marks its own line
+        ui_demo_active = true;
+        if (g_timer == nullptr) {
+            g_timer = lv_timer_create(tick, kTickMs, nullptr);
+        } else {
+            lv_timer_resume(g_timer);
+        }
+    } else {
+        if (g_timer != nullptr) {
+            lv_timer_pause(g_timer);
+        }
+        ui_demo_active = false;
+        ui_demo_bpm = 0;
+        telemetry::clear_line();   // drop the demo line, bring back the saved one
+        telemetry::Line line;
+        if (line_store::load(&line)) {
+            telemetry::set_line(line);
+        }
+    }
 }

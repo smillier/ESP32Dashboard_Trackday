@@ -3,6 +3,11 @@ idf_component_register(
         "main.cpp"
         "display.c"
         "ui.cpp"
+        "config_ui.cpp"
+        "settings.cpp"
+        "i18n.cpp"
+        "fonts.cpp"
+        "touch.c"
         "telemetry.cpp"
         "line_store.cpp"
         "demo.cpp"
@@ -17,5 +22,6 @@ idf_component_register(
         "heart_rate_ble.c"
         "app_state.c"
     INCLUDE_DIRS "."
+    EMBED_FILES "fonts/Montserrat-Medium.ttf"
     REQUIRES bt driver esp_driver_spi esp_driver_gpio esp_driver_ledc esp_driver_i2c esp_lcd esp_timer nvs_flash
 )

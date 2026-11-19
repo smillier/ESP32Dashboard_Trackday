@@ -59,6 +59,7 @@ void feed(const Sample& s);
 bool mark_line(Line* out);
 void set_line(const Line& line);
 void reset_session();
+void clear_line();   // forgets the start/finish line and resets the session
 void snapshot(Snapshot* out);
 
 } // namespace telemetry

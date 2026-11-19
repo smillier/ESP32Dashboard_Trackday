@@ -9,6 +9,9 @@
 #include "config.h"
 #include "demo.h"
 #include "display.h"
+#include "fonts.h"
+#include "settings.h"
+#include "touch.h"
 #include "heart_rate_ble.h"
 #include "line_store.h"
 #include "racebox_ble.h"
@@ -44,12 +47,16 @@ extern "C" void app_main(void) {
         ESP_LOGI(kTag, "Start/finish line restored (heading %.1f)", (double)line.heading_deg);
     }
 
+    settings::load(kDemoTelemetry);
     display_init();
+    display_set_brightness(settings::get().brightness);
+    fonts::init();
+    touch_init();
     ui_create();
     status_led::init(kRgbLedPin, kRgbLedCount);
     buttons_init();
-    if (kDemoTelemetry) {
-        demo_start();
+    if (settings::get().demo) {
+        demo_set_enabled(true);
     }
     ble_manager_init();
 
