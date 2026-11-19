@@ -34,8 +34,8 @@ These were captured from the real display on the Waveshare board, running [demo 
 | Area | Content |
 |---|---|
 | Top row | One chip per Bluetooth device: RaceBox, GoPro, Heart. A dot and a state word (SEARCH, LINK, READY, REC, PAUSED, LOCKED, PAIRING, LIVE; the GoPro chip shows its mode, Video / Photo / Timelapse, once ready). The dot blinks while searching. |
-| Left | Heart rate in bpm (grey `--` with "NO STRAP" until a strap connects), then speed, GPS fix and satellite count, and RaceBox battery. |
-| Right | Current lap time and lap number, best lap in purple, and the gap: last lap minus the best lap before it (green if faster, red if slower). |
+| Left | Heart rate in bpm (grey `--` with "NO STRAP" until a strap connects), then two rows that line up with the lap rows on the right: speed, and GPS fix with satellite count (green `3D`, red `NO FIX`). |
+| Right | Clock icon with the current lap number, the current lap time, best lap in purple, and the gap: last lap minus the best lap before it (green if faster, red if slower). |
 | Lean bar | Flat bar centred on zero, growing left or right (range +-60 degrees). Green below 30 degrees, orange up to 45, red above. The maximum left and right lean of the session sit at each end. |
 | Bottom | The last 3 laps with their delta to the best. The best lap has a purple outline. |
 
