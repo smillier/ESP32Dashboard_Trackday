@@ -17,7 +17,7 @@ static const char *TAG = "touch";
  * wrong place on your unit. */
 #define TOUCH_SWAP_XY   1
 #define TOUCH_INVERT_X  0
-#define TOUCH_INVERT_Y  0
+#define TOUCH_INVERT_Y  1
 
 static int s_last_x, s_last_y;
 static bool s_down;
