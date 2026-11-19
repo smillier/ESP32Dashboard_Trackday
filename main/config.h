@@ -59,6 +59,10 @@ inline constexpr int kBtnMarkLine = 17;   // short: mark start/finish here, long
 
 inline constexpr int kLongPressMs = 1500;
 
+// Holding the GoPro mode button this long forgets every pinned Bluetooth
+// device (RaceBox, GoPro, heart-rate strap) so the next ones are pinned.
+inline constexpr int kForgetPinsMs = 3000;
+
 // ---------------------------------------------------------------------
 // NeoPixel status bar: 0 = RaceBox, 1 = GoPro, 2 = heart rate monitor,
 // 3.. = lap result flash (green faster, red slower, purple new best).

@@ -27,6 +27,7 @@
 #include "host/util/util.h"
 
 #include "ble_manager.h"
+#include "peer_pins.h"
 #include "heart_rate_ble.h"
 
 static const char *TAG = "heart_rate_ble";
@@ -229,6 +230,7 @@ static int hr_gap_event(struct ble_gap_event *event, void *arg)
         if (event->connect.status == 0) {
             ESP_LOGI(TAG, "Connected. Discovering Heart Rate service...");
             s_conn_handle = event->connect.conn_handle;
+            peer_pins_confirm(PEER_HEART);
             s_bpm_valid = false;
             // Connecting to this peer cancelled the shared scan; resume it
             // now so the RaceBox/GoPro scan keeps going independently of

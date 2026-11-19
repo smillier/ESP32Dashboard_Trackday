@@ -8,6 +8,7 @@ idf_component_register(
         "demo.cpp"
         "buttons.cpp"
         "ble_manager.cpp"
+        "peer_pins.c"
         "status_led.cpp"
         "racebox_ble.cpp"
         "ubx_protocol.cpp"

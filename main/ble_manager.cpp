@@ -11,6 +11,7 @@
 
 #include "gopro_ble.h"
 #include "heart_rate_ble.h"
+#include "peer_pins.h"
 #include "racebox_ble.h"
 
 // Declared by the NimBLE "store/config" component; provides persistent
@@ -39,19 +40,23 @@ int scan_event_handler(struct ble_gap_event* event, void* arg) {
         return 0;
     }
 
-    if (!racebox_ble::is_connected() && racebox_ble::matches(fields)) {
+    // Each device is pinned to one address (see peer_pins.h): a matching
+    // advertisement from any other address is ignored.
+    if (!racebox_ble::is_connected() && racebox_ble::matches(fields) &&
+        peer_pins_allowed(PEER_RACEBOX, &event->disc.addr)) {
         ble_gap_disc_cancel();
         racebox_ble::connect(g_own_addr_type, event->disc.addr);
         return 0;
     }
 
-    if (!gopro_ble_is_connected() && gopro_ble_matches(&fields)) {
+    if (!gopro_ble_is_connected() && gopro_ble_matches(&fields) && peer_pins_allowed(PEER_GOPRO, &event->disc.addr)) {
         ble_gap_disc_cancel();
         gopro_ble_connect(&event->disc.addr);
         return 0;
     }
 
-    if (!heart_rate_ble_is_connected() && heart_rate_ble_matches(&fields)) {
+    if (!heart_rate_ble_is_connected() && heart_rate_ble_matches(&fields) &&
+        peer_pins_allowed(PEER_HEART, &event->disc.addr)) {
         ble_gap_disc_cancel();
         heart_rate_ble_connect(&event->disc.addr);
         return 0;

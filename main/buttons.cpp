@@ -10,6 +10,7 @@
 #include "config.h"
 #include "gopro_control.h"
 #include "line_store.h"
+#include "peer_pins.h"
 #include "racebox_ble.h"
 #include "telemetry.h"
 
@@ -70,7 +71,13 @@ void button_task(void*) {
         switch (pin) {
             case kBtnRaceBoxRec: racebox_ble::toggle_recording(); break;
             case kBtnGoProShutter: gopro_control_toggle_shutter(); break;
-            case kBtnGoProMode: gopro_control_cycle_mode(); break;
+            case kBtnGoProMode:
+                if (held_ms >= kForgetPinsMs) {
+                    peer_pins_forget_all();
+                } else {
+                    gopro_control_cycle_mode();
+                }
+                break;
             case kBtnGoProPower: gopro_control_power_button(); break;
             case kBtnMarkLine: mark_line_pressed(held_ms); break;
             default: break;

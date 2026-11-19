@@ -10,6 +10,7 @@
 
 #include "ble_manager.h"
 #include "config.h"
+#include "peer_pins.h"
 #include "telemetry.h"
 #include "ubx_protocol.h"
 
@@ -313,6 +314,7 @@ int gap_event_handler(struct ble_gap_event* event, void* arg) {
             }
 
             g_conn_handle = event->connect.conn_handle;
+            peer_pins_confirm(PEER_RACEBOX);
             reset_connection_state();
             g_state = RaceBoxState::CONNECTING;
 

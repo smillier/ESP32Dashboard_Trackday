@@ -98,7 +98,7 @@ The dash is a BLE central only (it never advertises) and keeps three connections
 - **GoPro**: found by service 0xFEA6 and bonded with Just Works legacy pairing. Put the camera in pairing mode once; the bond is saved.
 - **Heart-rate strap**: any strap with the standard Heart Rate service (0x180D), no pairing needed.
 
-The dash connects to the first matching device it sees; it does not pin a specific one. See the [security review](docs/security-review.pdf) for what that means and how to fix it.
+Each device is pinned to one address: the first match is accepted and saved in flash (trust on first use), then only that address connects. Hold the GoPro mode button for 3 s to forget all pins. See the [security review](docs/security-review.pdf).
 
 ## How the numbers are computed
 
@@ -160,7 +160,7 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 
 - The lap and lean logic was checked on the board with the demo track (lap time and lean angle matched the simulated values). It has not yet been tested on a bike with a real RaceBox, GoPro or strap.
 - Touch, IMU, camera, SD card and audio on the Waveshare board are not used.
-- The Bluetooth peers are not pinned: the dash connects to the first match.
+- Pinning keys on the advertised address; a strap that rotates a private address would need pinning again.
 
 ## Credits
 

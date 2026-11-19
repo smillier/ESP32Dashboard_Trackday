@@ -34,6 +34,7 @@
 #include "gopro_ble.h"
 #include "app_state.h"
 #include "ble_manager.h"
+#include "peer_pins.h"
 
 static const char *TAG = "gopro_ble";
 
@@ -400,6 +401,7 @@ static int gopro_gap_event(struct ble_gap_event *event, void *arg)
             ESP_LOGI(TAG, "Connected. Discovering GATT database (bonding requested after)...");
             app_state_set_conn(CONN_STATE_CONNECTING);
             s_conn_handle = event->connect.conn_handle;
+            peer_pins_confirm(PEER_GOPRO);
             // Connecting to this peer cancelled the shared scan; resume it
             // now so the RaceBox/heart-rate-monitor scan keeps going
             // independently of this GoPro connection's own progress.
