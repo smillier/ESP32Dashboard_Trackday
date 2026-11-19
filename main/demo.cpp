@@ -45,6 +45,7 @@ void tick(lv_timer_t*) {
     s.rz = (float)(-w * std::cos(lean) * 180.0 / kPi);      // body yaw rate = world rate * cos(lean), Z up
     s.gz = (float)std::sqrt(1.0 + lat_g * lat_g);           // resultant stays on the bike's Z axis
     telemetry::feed(s);
+    ui_demo_bpm = (int)(118.0 + 34.0 * lat_g / 0.65 + 6.0 * std::sin(g_t * 0.7));
 
     if (g_t > 0.2 && g_t < 0.3) {
         telemetry::Line line;

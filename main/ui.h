@@ -7,3 +7,4 @@ void ui_create(void);
 
 // Set when simulated telemetry is driving the screen instead of a RaceBox.
 extern bool ui_demo_active;
+extern int ui_demo_bpm;  // simulated heart rate shown in demo mode (0 = none)
