@@ -59,7 +59,7 @@ Long press (about 1 s) the row of status chips at the top of the dashboard to op
 
 | Setting | What it does |
 |---|---|
-| Language | English, Français, Deutsch, Español, Italiano. Everything on the dashboard and in the settings changes at once. |
+| Language | English, FranÃ§ais, Deutsch, EspaÃ±ol, Italiano. Everything on the dashboard and in the settings changes at once. |
 | Speed unit | km/h or mph. |
 | Brightness | Backlight, 10 to 100 %. |
 | Demo mode | Simulated bike on or off (see [Demo mode](#demo-mode)). Starts on or off according to `kDemoTelemetry` until you change it. |
