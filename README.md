@@ -66,6 +66,7 @@ Long press (about 1 s) the row of status chips at the top of the dashboard to op
 | Forget Bluetooth devices | Clears the pinned RaceBox, GoPro and strap, so the next ones are pinned. |
 | Reset laps and max lean | Same as holding the mark button. |
 | Restart | Reboots the dash. |
+| System | Live CPU load (average and per core), free internal RAM with its low-water mark, free PSRAM when the board has some, and the uptime. Updated every second. |
 | Firmware | Name, version, build date, chip and ESP-IDF version. |
 
 Every setting is saved in flash. The screen closes by itself after 45 s without a touch. The firmware version is `FIRMWARE_VERSION` in [`main/version.h`](main/version.h) and is also printed at start-up.
@@ -168,6 +169,16 @@ idf.py -B build_s3 -D SDKCONFIG=sdkconfig.s3 -p COM17 flash monitor
 
 Change the COM port to match your board. The VS Code ESP-IDF extension works with the project folder as is.
 
+## Enclosure
+
+A 3D-printable two-part case for the Waveshare board is in [`enclosure/`](enclosure/): [`dash_enclosure.scad`](enclosure/dash_enclosure.scad) (OpenSCAD source, all dimensions are variables at the top) and the exported `dash_front.stl` and `dash_back.stl`.
+
+- Front part: screen window, one hole per NeoPixel above it, and two pins that take 2 x M2 x 4 screws for the 8-pixel bar. Print it face down.
+- Back part: posts for the 4 M2 screws of the screen, a cut-out for the USB-C port, and pockets for the screw heads. Print it floor down. The back is flat, ready to glue a bike mount to.
+- The two parts close with 4 x M3 x 12 screws.
+
+Dimensions come from the Waveshare drawing and from a photo of the bar next to a ruler, and the case has not been printed yet, so test-fit it before relying on it.
+
 ## Project layout
 
 | Path | Purpose |
@@ -177,6 +188,7 @@ Change the COM port to match your board. The VS Code ESP-IDF extension works wit
 | `main/ui.cpp` | The dashboard screen |
 | `main/splash.cpp` | Power-on animation (the italic slant is done on the pixels, LVGL has no italic font) |
 | `main/config_ui.cpp` | The settings screen |
+| `main/sysinfo.cpp/.h` | CPU load, memory and uptime for the settings screen |
 | `main/settings.cpp/.h` | Saved settings (language, unit, brightness, demo) |
 | `main/i18n.cpp/.h` | Translated texts |
 | `main/fonts.cpp`, `main/fonts/` | Accented text fonts (Montserrat TTF through Tiny TTF) |
