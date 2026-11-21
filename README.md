@@ -37,10 +37,6 @@ These were captured from the real display on the Waveshare board, running [demo 
 
 ![French dashboard](docs/images/04-french.png)
 
-**Start-up animation** (about 3 seconds at power on): scrolling checkered flags, speed streaks, the product name and firmware version, then five start lights that go out before the dashboard fades in:
-
-![Start-up animation](docs/images/05-splash-screen.png)
-
 ## What is on screen
 
 | Area | Content |
@@ -186,7 +182,6 @@ Dimensions come from the Waveshare drawing and from a photo of the bar next to a
 | `main/main.cpp` | Start-up and the LVGL loop |
 | `main/display.c/.h` | LVGL and ST7796 setup, pins, backlight (both boards) |
 | `main/ui.cpp` | The dashboard screen |
-| `main/splash.cpp` | Power-on animation (the italic slant is done on the pixels, LVGL has no italic font) |
 | `main/config_ui.cpp` | The settings screen |
 | `main/sysinfo.cpp/.h` | CPU load, memory and uptime for the settings screen |
 | `main/settings.cpp/.h` | Saved settings (language, unit, brightness, demo) |
