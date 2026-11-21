@@ -46,7 +46,11 @@ namespace i18n {
     X(RESET_LAPS,    "Reset laps and max lean",  "Réinitialiser tours et angle max", "Runden und Max-Winkel löschen", "Reiniciar vueltas y ángulo máx.", "Azzera giri e angolo max") \
     X(RESTART,       "Restart",                  "Redémarrer",                    "Neustart",                   "Reiniciar",                   "Riavvia") \
     X(FIRMWARE,      "Firmware",                 "Firmware",                      "Firmware",                   "Firmware",                    "Firmware") \
-    X(DONE_BT,       "Bluetooth devices forgotten", "Appareils Bluetooth oubliés", "Bluetooth-Geräte vergessen", "Dispositivos Bluetooth olvidados", "Dispositivi Bluetooth dimenticati") \
+    X(SYSTEM,        "System",                   "Système",                       "System",                     "Sistema",                     "Sistema") \
+    X(SYS_RAM,       "RAM free",                 "RAM libre",                     "RAM frei",                   "RAM libre",                   "RAM libera") \
+    X(SYS_PSRAM,     "PSRAM free",               "PSRAM libre",                   "PSRAM frei",                 "PSRAM libre",                 "PSRAM libera") \
+    X(SYS_UPTIME,    "Uptime",                   "En marche",                     "Laufzeit",                   "Activo",                      "In funzione") \
+    X(DONE_BT,      "Bluetooth devices forgotten", "Appareils Bluetooth oubliés", "Bluetooth-Geräte vergessen", "Dispositivos Bluetooth olvidados", "Dispositivi Bluetooth dimenticati") \
     X(DONE_LAPS,     "Laps reset",               "Tours réinitialisés",           "Runden gelöscht",            "Vueltas reiniciadas",         "Giri azzerati")
 
 enum Str : uint8_t {

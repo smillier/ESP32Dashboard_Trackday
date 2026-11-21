@@ -13,6 +13,7 @@
 #include "i18n.h"
 #include "peer_pins.h"
 #include "settings.h"
+#include "sysinfo.h"
 #include "telemetry.h"
 #include "ui.h"
 #include "version.h"
@@ -40,6 +41,9 @@ lv_obj_t* g_toast = nullptr;
 lv_timer_t* g_idle = nullptr;
 lv_timer_t* g_toast_timer = nullptr;
 bool g_lang_changed = false;
+lv_obj_t* g_sys_vals = nullptr;   // values of the System row, refreshed every second
+lv_timer_t* g_sys_timer = nullptr;
+bool g_cpu_ready = false;         // the CPU load needs one full interval before it means anything
 
 // ----------------------------------------------------------------- helpers
 
@@ -109,8 +113,45 @@ void show_toast(const char* text) {
 
 void build();
 
+// Fills the value column of the System row (one line per caption).
+void refresh_sys() {
+    if (g_sys_vals == nullptr) {
+        return;
+    }
+    SysInfo s;
+    sysinfo_sample(&s);
+
+    char buf[192];
+    int n = 0;
+    if (!g_cpu_ready) {
+        n += snprintf(buf + n, sizeof(buf) - n, "--\n");
+    } else if (s.cores > 1) {
+        n += snprintf(buf + n, sizeof(buf) - n, "%u %%   (%u / %u)\n", s.cpu_pct, s.core_pct[0], s.core_pct[1]);
+    } else {
+        n += snprintf(buf + n, sizeof(buf) - n, "%u %%\n", s.cpu_pct);
+    }
+    n += snprintf(buf + n, sizeof(buf) - n, "%u / %u KB   (min %u)\n", (unsigned)(s.ram_free / 1024),
+                  (unsigned)(s.ram_total / 1024), (unsigned)(s.ram_min_free / 1024));
+    if (s.psram_total > 0) {
+        n += snprintf(buf + n, sizeof(buf) - n, "%u / %u KB\n", (unsigned)(s.psram_free / 1024),
+                      (unsigned)(s.psram_total / 1024));
+    }
+    const unsigned up = s.uptime_s;
+    if (up >= 3600) {
+        snprintf(buf + n, sizeof(buf) - n, "%u h %02u min", up / 3600, (up / 60) % 60);
+    } else {
+        snprintf(buf + n, sizeof(buf) - n, "%u min %02u s", up / 60, up % 60);
+    }
+    lv_label_set_text(g_sys_vals, buf);
+}
+
 void close_screen() {
     lv_obj_t* old = g_scr;
+    if (g_sys_timer != nullptr) {
+        lv_timer_delete(g_sys_timer);
+        g_sys_timer = nullptr;
+    }
+    g_sys_vals = nullptr;
     if (g_idle != nullptr) {
         lv_timer_delete(g_idle);
         g_idle = nullptr;
@@ -295,6 +336,32 @@ void build() {
     add_action(tr(RESET_LAPS), LV_SYMBOL_REFRESH, on_reset_laps);
     add_action(tr(RESTART), LV_SYMBOL_POWER, on_restart);
 
+    // System usage: captions on the left, live values on the right.
+    {
+        SysInfo probe;
+        sysinfo_sample(&probe);
+        const bool has_psram = probe.psram_total > 0;
+        const int lines = has_psram ? 4 : 3;
+        row = make_row(34 + lines * 18);
+        lv_obj_t* st = make_label(row, fonts::text(), COL_TEXT, tr(SYSTEM));
+        lv_obj_align(st, LV_ALIGN_TOP_LEFT, 12, 6);
+
+        char caps[96];
+        int n = snprintf(caps, sizeof(caps), "CPU\n%s\n", tr(SYS_RAM));
+        if (has_psram) {
+            n += snprintf(caps + n, sizeof(caps) - n, "%s\n", tr(SYS_PSRAM));
+        }
+        snprintf(caps + n, sizeof(caps) - n, "%s", tr(SYS_UPTIME));
+        lv_obj_t* cap = make_label(row, fonts::small(), COL_CAPTION, caps);
+        lv_obj_set_style_text_line_space(cap, 4, 0);
+        lv_obj_align(cap, LV_ALIGN_TOP_LEFT, 12, 32);
+
+        g_sys_vals = make_label(row, fonts::small(), COL_TEXT, "");
+        lv_obj_set_style_text_line_space(g_sys_vals, 4, 0);
+        lv_obj_align(g_sys_vals, LV_ALIGN_TOP_LEFT, 130, 32);
+        refresh_sys();
+    }
+
     // Firmware version.
     row = make_row(66);
     lv_obj_t* fw = make_label(row, fonts::text(), COL_TEXT, tr(FIRMWARE));
@@ -333,7 +400,16 @@ void config_ui_open(void) {
         return;
     }
     g_lang_changed = false;
+    g_cpu_ready = false;
+    SysInfo baseline;
+    sysinfo_sample(&baseline);  // start of the first CPU load interval
     build();
+    g_sys_timer = lv_timer_create(
+        [](lv_timer_t*) {
+            g_cpu_ready = true;
+            refresh_sys();
+        },
+        1000, nullptr);
     g_idle = lv_timer_create(
         [](lv_timer_t*) {
             if (g_scr != nullptr && lv_display_get_inactive_time(nullptr) > kIdleCloseMs) {
